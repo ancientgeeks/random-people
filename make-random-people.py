@@ -1,10 +1,13 @@
+import datetime
 import json
+import random
 import cv2
 import requests
 import os
 import names
 import shutil
 from openai import OpenAI
+import re
 
 def highlightFace(net, frame, conf_threshold=0.7):
     frameOpencvDnn=frame.copy()
@@ -90,14 +93,28 @@ def generate_name(gender):
     else:
         return names.get_first_name()
 
+def get_random_age_from_range(age_range):
+    # Extract the age range using a regex
+    match = re.match(r'\((\d+)-(\d+)\)', age_range)
+    if match:
+        min_age = max(1, int(match.group(1)))
+        max_age = min(80, int(match.group(2)))
+        age = random.randint(min_age, max_age)
+        return age
+    else:
+        print(f"Invalid age range: {age_range}")
+        return None
+
+
 def make_random_person():
     image_path = "person.jpg"
     get_fake_person_image(image_path)
     results = detect_age_gender(image_path)
     for result in results:
         name = generate_name(result['gender'])
+        age = get_random_age_from_range(result['age'])
 
-        print(f"Creating random person... Name: {name}, Age: {result['age']}, Gender: {result['gender']}")
+        print(f"Creating random person... Name: {name}, Age: {age}, Gender: {result['gender']}")
 
         # Create a directory for the person
         new_dir = os.path.join('people', name)
@@ -105,12 +122,14 @@ def make_random_person():
         new_image_path = os.path.join(new_dir, f'{name}.jpg')
         shutil.copy(image_path, new_image_path)
 
+        
+
         # Generate a story about the person
-        story = generate_story(name, result['gender'], result['age'])
+        story = generate_story(name, result['gender'], age)
 
         data = {
             'name': name,
-            'age': result['age'],
+            'age': age,
             'gender': result['gender'],
             'image_url': new_image_path,
             'story': story
