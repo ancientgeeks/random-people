@@ -1,0 +1,1 @@
+create a short professional biography as you might see on a software company website. If the person is not of the right age, then create an age-appropriate biography. For example if they are of high-school age, it might include school achievements and career aspirations.
